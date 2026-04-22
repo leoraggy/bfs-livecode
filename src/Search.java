@@ -1,4 +1,17 @@
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+
 public class Search {
+
+    public static void main(String[] args) {
+        Location myLocation = new Location(5,88);
+
+        System.out.println(myLocation);
+    }
      /**
      * Finds the location of the nearest reachable cheese from the rat's position.
      * Returns a 2-element int array: [row, col] of the closest 'c'. If there are multiple
@@ -28,7 +41,82 @@ public class Search {
      * @throws CrowdedMazeException if there is more than one rat in the maze
      * @throws HungryRatException if there is no reachable cheese
      */
-    public static int[] nearestCheese(char[][] maze) throws EscapedRatException, CrowdedMazeException, HungryRatException {
+    public static Location nearestCheese(char[][] maze) throws EscapedRatException, CrowdedMazeException, HungryRatException {
+        Location start = ratLocation(maze);
+
+        Queue<Location> queue = new LinkedList<>();
+        Set<Location> visited = new HashSet<>();
+        
+        queue.add(start);
+
+        while(!queue.isEmpty()){
+            Location current = queue.poll();
+
+            if(visited.contains(current)){
+                continue;
+            }
+
+            visited.add(current);
+            
+            if(maze[current.row()][current.col()] == 'c'){
+                return current;
+            }
+
+            for(Location neighbor : neighbors(maze, current)){
+                queue.add(neighbor);
+            }
+
+        }
+
+        throw new HungryRatException();
+
+    }
+
+    public static List<Location> neighbors(char[][] maze, Location current){
+        List<Location> result = new ArrayList<>();
+
+        int[][] moves = new int[][]{
+            {-1,0}, //UP
+            {1,0},  //DOWN
+            {0,-1}, //LEFT
+            {0,1},  //RIGHT
+        };
+
+        for(int[] move : moves){
+            int newR = current.row() + move[0];
+            int newC = current.col()+ move[1];
+
+            if(newR > 0 && newR < maze.length &&
+               newC >= 0 && newC < maze[0].length &&
+               maze[newR][newC] != 'w'){
+                 result.add(new Location(newR, newC));
+            }
+          
+        }
+
         return null;
+    }
+
+    public static Location ratLocation(char[][] maze) throws EscapedRatException, CrowdedMazeException{
+        Location location = null;
+
+        for(int row = 0; row < maze.length; row++){
+            for(int col = 0; col < maze[0].length; col++){
+                if(maze[row][col] == 'R'){
+                  if(location == null){
+                   location = new Location(row, col);
+                  }else{
+                    throw new CrowdedMazeException();
+                  }
+                }
+
+            }
+        }
+
+        if(location == null){
+            throw new EscapedRatException();
+        }
+
+        return location;
     }
 }
